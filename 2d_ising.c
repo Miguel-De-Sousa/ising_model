@@ -3,39 +3,97 @@
 #include <math.h>
 #include <time.h>
 
-#define SPIN_UP 1
-#define SPIN_DOWN -1
+typedef char Spin;
+static const Spin SPIN_UP   =  1;
+static const Spin SPIN_DOWN = -1;
 
 typedef struct{
     int N;
-    short *spins;
+    Spin *spin;
     double T;
+    double B;
     unsigned long long step;
-} square_Lattice;
+    double energy;
+    double magnetisation;
+} IsingLattice;
 
-square_Lattice * create_lattice(int N, double T){
+IsingLattice *create_lattice(int N, double T, double B);
+double ising_hamiltonian(IsingLattice *lattice);
+double ising_magnetisation(IsingLattice *lattice);
 
-    square_Lattice * lattice_malloc = malloc(sizeof(square_Lattice));
+int main(){
+    srand(time(NULL));
 
-    if (lattice_malloc == NULL){
+    IsingLattice *lattice = create_lattice(20, 2.0, 0.5);
+    double E = ising_hamiltonian(lattice);
+    double M = ising_magnetisation(lattice);
+
+    printf("Total Energy = %fJ\n", E);
+    printf("Magnetisation = %fT\n", M);
+
+    return 0;
+}
+
+IsingLattice *create_lattice(int N, double T, double B){
+
+    IsingLattice *lattice = malloc(sizeof(IsingLattice));
+
+    if (lattice == NULL){
         fprintf(stderr, "Memory allocation failed\n");
         exit(EXIT_FAILURE);
     }
 
-    lattice_malloc->N = N;
-    lattice_malloc->T = T;
-    lattice_malloc->step = 0;
-    lattice_malloc->spins = malloc(N * N * sizeof(short));
+    lattice->N = N;
+    lattice->T = T;
+    lattice->B = B;
+    lattice->step = 0;
+    lattice->spin = malloc(N * N * sizeof(char));
 
-    if (lattice_malloc->spins == NULL){
-        fprintf(stderr, "Memory allocation for spins failed\n");
-        free(lattice_malloc);
+    if (lattice->spin == NULL){
+        fprintf(stderr, "Memory allocation for spin failed\n");
+        free(lattice);
         exit(EXIT_FAILURE);
     }
 
     for (int i = 0; i < N * N; i++){
-        lattice_malloc->spins[i] = (rand() % 2) ? SPIN_UP : SPIN_DOWN;
+        lattice->spin[i] = (rand() % 2) ? SPIN_UP : SPIN_DOWN;
     }
 
-    return lattice_malloc;
+    return lattice;
+}
+
+double ising_hamiltonian(IsingLattice *lattice){
+    int N = lattice->N;
+    double B = lattice->B;
+
+    double adj_energy = 0;
+    double field_energy = 0;
+
+    for (int i=0; i<N; i++){
+        for (int j=0; j<N; j++){
+            Spin spin = lattice->spin[i * N + j];
+
+            Spin right_adj = lattice->spin[i * N + ((j + 1) % N)];
+            Spin down_adj = lattice->spin[((i + 1) % N) * N + j];
+
+            adj_energy -= spin * (right_adj + down_adj);
+            field_energy -= B * spin;
+        }
+    }
+    double total_energy = adj_energy + field_energy;
+    lattice->energy = total_energy;
+    return total_energy;
+}
+
+double ising_magnetisation(IsingLattice *lattice){
+    int N = lattice->N;
+    double total_magnetisation = 0;
+
+    for (int i=0; i<N*N; i++){
+        total_magnetisation += lattice->spin[i];
+    }
+
+    double normalised_mag = total_magnetisation / (N * N);
+    lattice->magnetisation = normalised_mag;
+    return normalised_mag;
 }

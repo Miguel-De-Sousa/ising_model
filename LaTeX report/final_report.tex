@@ -1,0 +1,160 @@
+%============================================================
+% PHY2027 Assessment 3 – Final Project Report Template
+% Option 3: 2D Ising Model Simulation
+%============================================================
+\documentclass[10pt,a4paper]{article}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{caption,subcaption}
+\usepackage{booktabs}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage{inconsolata}
+
+% Code listing style
+\lstset{
+    language=C,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue}\bfseries,
+    commentstyle=\color{gray},
+    numbers=left,
+    numbersep=8pt,
+    frame=single,
+    captionpos=b,
+    breaklines=true
+}
+
+% Header/Footer
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{PHY2027 – Ising Model Report}
+\lhead{Miguel de Sousa}
+\cfoot{\thepage}
+
+\title{Two-Dimensional Ising Model Simulation\\
+       \large PHY2027 – Scientific Programming in C – Final Project Report}
+\author{Miguel de Sousa}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Theory}
+[1] The Ising model, introduced by Ernst Ising in 1925, is a mathematical model consisting of a lattice of 'spin' variables $\sigma_\alpha$ which can take discrete values of $\pm1$.
+These spins represent magnetic dipole moments of atomic spins that can be in one of two states: up (+1) or down (-1). The model is used to study phase transitions and critical phenomena in statistical mechanics.
+[1]Any two of these spins have a mutual interaction Energy
+\begin{equation}
+    -E_{\alpha\beta}\sigma_\alpha\sigma_\beta
+\end{equation}
+
+[1]Additionally, an external magnetic field $B$ can interact with each spin, contributing an energy term of
+\begin{equation}
+    -B\sigma_\alpha
+\end{equation}
+
+The total energy of a configuration of spins on a lattice can be expressed as
+\begin{equation}
+    E = -\sum_{\langle \alpha,\beta \rangle} E_{\alpha\beta}\sigma_\alpha\sigma_\beta - B\sum_{\alpha} \sigma_\alpha
+\end{equation}
+where the first sum is over all pairs of neighbouring spins.
+The Ising model exhibits a phase transition at a critical temperature $T_c$, below which the spins tend to align, resulting in spontaneous magnetisation, and above which the spins are disordered.
+
+\section{Implementation}
+\subsection{Data Structure and Initialisation (Part a)}
+I began by defining a structure type to represent the 2D Ising lattice, which included all necessary parameters as structure members for the model such as its N-dimenionsionality, values for temperature T, external magnetic field B, total energy and magnetisation of the lattice, and a pointer to an array of spins.
+
+\begin{lstlisting}
+typedef char Spin;
+static const Spin SPIN_UP   =  1;
+static const Spin SPIN_DOWN = -1;
+
+typedef struct{
+    int N;
+    Spin *spin;
+    double T;
+    double B;
+    unsigned long long step;
+    double energy;
+    double magnetisation;
+} IsingLattice;
+\end{lstlisting}
+
+Lines 1-3: Assigning a char type to Spin, with constants for SPIN\_UP and SPIN\_DOWN defined with this new type. 
+The char data type forces each spin to occupy only 1 byte of memory, which is efficient for large n by n lattices. 
+The Spin type is used throughout the code, so defining it at the start improves code readability.\medbreak
+
+Lines 5-14: Creating the IsingLattice structure type with members for lattice size N, pointer to spin array, temperature T, external magnetic field B, current step number, total energy, and total magnetisation.
+Structures are useful for grouping related data together, so its perfect for representing the lattice and its properties.
+I used double for T, B, energy, and magnetisation to allow for fractional values and higher precision in calculations.
+The step member is an unsigned long long to allow a large number of Monte Carlo steps.
+Proving its reuseability, the spin pointer defined in the sructure types is allocatd to my new Spin data type.\medbreak
+
+After defining the structure type, I implemented the initialisation function to set up the lattice with random n by n spins.
+
+\begin{lstlisting}
+IsingLattice *create_lattice(int N, double T, double B){
+
+    IsingLattice *lattice = malloc(sizeof(IsingLattice));
+
+    if (lattice == NULL){
+        fprintf(stderr, "Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
+
+    lattice->N = N;
+    lattice->T = T;
+    lattice->B = B;
+    lattice->step = 0;
+    lattice->spin = malloc(N * N * sizeof(char));
+
+    if (lattice->spin == NULL){
+        fprintf(stderr, "Memory allocation for spin failed\n");
+        free(lattice);
+        exit(EXIT_FAILURE);
+    }
+
+    for (int i = 0; i < N * N; i++){
+        lattice->spin[i] = (rand() % 2) ? SPIN_UP : SPIN_DOWN;
+    }
+
+    return lattice;
+}
+\end{lstlisting}
+
+Lines 1-8: The create\_function takes lattice parameters as arguments and it allocates enough memory for the new lattice instance using malloc
+and the size of the IsingLattice structure type.
+It checks if the allocation was successful, printing an error message and exiting if not.
+The structure type pointer is initalised within the fucntion as *lattice.\medbreak
+
+Lines 10-13: Assign the input parameters N, T, and B to the corresponding structure members in the IsingLattice using -> structure pointer notation.\medbreak
+
+Lines 14-24: Allocate memory for the spin array within the lattice structure using malloc.
+The size is n by n multiplied by the size of a char (1 byte) since each spin is represented as a char.
+It checks for successful allocation, freeing the previously allocated lattice memory location if the spin allocation fails.
+I then assigned each lattice spin array value in the lattice to a random value of SPIN\_UP or SPIN\_DOWN using a count controlled loop with boundaries at 0 and n by n.
+The rand() function acted as the randomiser, with modulus 2 giving eitehr values of 0 or 1, which were mapped to either SPIN\_UP or SPIN\_DOWN.\medbreak
+
+Lines 26: Finally, the function returns a pointer to the newly created and initialised lattice instance.
+
+
+\subsection{Energy and Magnetisation Calculation (Part a)}
+\subsection{Metropolis Algorithm (Part b)}
+\subsection{Visualisation Method (Part c)}
+
+\section{Program Exploration and Results}
+\subsection{Zero External Field ($B=0$)}
+\subsection{Effect of Temperature}
+\subsection{Effect of External Magnetic Field ($B \neq 0$)}
+\subsection{Boundary and Neighbour Effects}
+
+\section{Conclusion}
+
+\begin{thebibliography}{1}
+\bibitem{mccoy2014}
+B.~M.~McCoy and T.~T.~Wu, \textit{The Two-Dimensional Ising Model}, Harvard University Press, Reprint 2014.
+\end{thebibliography}
+
+\end{document}
