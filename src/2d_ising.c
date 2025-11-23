@@ -177,7 +177,7 @@ double metropolis_algorithm(IsingLattice *lattice){
 }
 
 void write_csv(IsingLattice *lattice){
-    FILE *fp = fopen("./src/ising_data.csv", "a");
+    FILE *fp = fopen("ising_data.csv", "a");
     if (fp == NULL){
         perror("Error opening file for writing\n");
         exit(EXIT_FAILURE);
