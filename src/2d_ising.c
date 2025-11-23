@@ -22,6 +22,7 @@ double ising_hamiltonian(IsingLattice *lattice);
 double ising_magnetisation(IsingLattice *lattice);
 double delta_energy(IsingLattice *lattice, int i, int j);
 double metropolis_algorithm(IsingLattice *lattice);
+void write_csv(IsingLattice *lattice);
 
 
 int main(){
@@ -42,35 +43,30 @@ int main(){
     printf("Begin simulation with N=%d, T=%f, B=%f? \n Y/N \n", N, T, B);
     scanf(" %c", &proceed);
 
+    IsingLattice *lattice = create_lattice(N, T, B);
+
     switch (proceed){
-        case 'Y':{
-             IsingLattice *lattice = create_lattice(N, T, B);
-
-            double initial_energy = ising_hamiltonian(lattice);
-            double initial_magnetisation = ising_magnetisation(lattice);
-            printf("Initial Energy: %f\n", initial_energy);
-            printf("Initial Magnetisation: %f\n", initial_magnetisation);
-
+        case 'Y':
             for (int step = 0; step < 100000; step++){
                 metropolis_algorithm(lattice);
+                if (step % 1000 == 0){
+                    write_csv(lattice);
+                }
+                
             }
 
-            double final_energy = ising_hamiltonian(lattice);
-            double final_magnetisation = ising_magnetisation(lattice);
-            printf("Final Energy: %f\n", final_energy);
-            printf("Final Magnetisation: %f\n", final_magnetisation);
-
+            printf("Simulation completed. Data written to ising_data.csv\n");
 
             break;
-        }
-        case 'N':{
+        
+        case 'N':
             printf("Simulation aborted.\n");
             break;
-        }
-        default:{
+        
+        default:
             printf("ERROR: Invalid option\n");
             break;
-        }
+        
     }
     return 0;
 }
@@ -178,4 +174,14 @@ double metropolis_algorithm(IsingLattice *lattice){
             return 0.0; 
         }
     }
+}
+
+void write_csv(IsingLattice *lattice){
+    FILE *fp = fopen("./src/ising_data.csv", "a");
+    if (fp == NULL){
+        perror("Error opening file for writing\n");
+        exit(EXIT_FAILURE);
+    }
+    fprintf(fp, "%llu,%f,%f\n", lattice->step, ising_hamiltonian(lattice), ising_magnetisation(lattice));
+    fclose(fp);
 }
