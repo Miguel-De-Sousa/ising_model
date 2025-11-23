@@ -1,0 +1,5 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/miguel/GitHub/isling_model/2d_ising'
+relocations:     []
+...
