@@ -7,7 +7,7 @@ typedef char Spin;
 static const Spin SPIN_UP   =  1;
 static const Spin SPIN_DOWN = -1;
 
-typedef struct{
+typedef struct {
     int N;
     Spin *spin;
     double T;
@@ -18,15 +18,15 @@ typedef struct{
 } IsingLattice;
 
 IsingLattice *create_lattice(int N, double T, double B);
+void initialize_lattice(IsingLattice *lattice);
 double ising_hamiltonian(IsingLattice *lattice);
 double ising_magnetisation(IsingLattice *lattice);
 double delta_energy(IsingLattice *lattice, int i, int j);
-double metropolis_algorithm(IsingLattice *lattice);
+int metropolis_algorithm(IsingLattice *lattice);
 void write_csv(IsingLattice *lattice);
 
-
-int main(){
-    srand(time(NULL));
+int main() {
+    srand((unsigned)time(NULL));
     int N;
     double T;
     double B;
@@ -35,47 +35,45 @@ int main(){
     printf("2D Ising Model Simulation\n");
     printf("-------------------------\n");
     printf("Enter N dimension for square lattice: \n");
-    scanf("%d", &N);
+    if (scanf("%d", &N) != 1) return 1;
     printf("Enter Temperature T: \n");
-    scanf("%lf", &T);
+    if (scanf("%lf", &T) != 1) return 1;
     printf("Enter External Magnetic Field B: \n");
-    scanf("%lf", &B);
+    if (scanf("%lf", &B) != 1) return 1;
     printf("Begin simulation with N=%d, T=%f, B=%f? \n Y/N \n", N, T, B);
     scanf(" %c", &proceed);
 
-    IsingLattice *lattice = create_lattice(N, T, B);
+    if (proceed == 'Y' || proceed == 'y') {
+        IsingLattice *lattice = create_lattice(N, T, B);
+        initialize_lattice(lattice);
 
-    switch (proceed){
-        case 'Y':
-            for (int step = 0; step < 100000; step++){
+        int total_steps = 100000;
+        for (int step = 0; step < total_steps; step++) {
+            for (int attempt = 0; attempt < N * N; attempt++) {
                 metropolis_algorithm(lattice);
-                if (step % 1000 == 0){
-                    write_csv(lattice);
-                }
-                
             }
 
-            printf("Simulation completed. Data written to ising_data.csv\n");
+            lattice->step = step;
 
-            break;
-        
-        case 'N':
-            printf("Simulation aborted.\n");
-            break;
-        
-        default:
-            printf("ERROR: Invalid option\n");
-            break;
-        
+            if (step % 1000 == 0) { 
+                write_csv(lattice);
+            }
+        }
+
+        printf("Simulation completed. Data written to ising_data.csv\n");
+
+        free(lattice->spin);
+        free(lattice);
+    } else {
+        printf("Simulation aborted.\n");
     }
+
     return 0;
 }
 
-IsingLattice *create_lattice(int N, double T, double B){
-
+IsingLattice *create_lattice(int N, double T, double B) {
     IsingLattice *lattice = malloc(sizeof(IsingLattice));
-
-    if (lattice == NULL){
+    if (lattice == NULL) {
         fprintf(stderr, "Memory allocation failed\n");
         exit(EXIT_FAILURE);
     }
@@ -84,104 +82,123 @@ IsingLattice *create_lattice(int N, double T, double B){
     lattice->T = T;
     lattice->B = B;
     lattice->step = 0;
-    lattice->spin = malloc(N * N * sizeof(char));
+    lattice->energy = 0.0;
+    lattice->magnetisation = 0.0;
+    lattice->spin = malloc(N * N * sizeof(Spin));
 
-    if (lattice->spin == NULL){
+    if (lattice->spin == NULL) {
         fprintf(stderr, "Memory allocation for spin failed\n");
         free(lattice);
         exit(EXIT_FAILURE);
     }
 
-    for (int i = 0; i < N * N; i++){
-        lattice->spin[i] = (rand() % 2) ? SPIN_UP : SPIN_DOWN;
-    }
-
     return lattice;
 }
 
-double ising_hamiltonian(IsingLattice *lattice){
+void initialize_lattice(IsingLattice *lattice) {
     int N = lattice->N;
-    double B = lattice->B;
 
-    double adj_energy = 0;
-    double field_energy = 0;
-
-    for (int i=0; i<N; i++){
-        for (int j=0; j<N; j++){
-            Spin spin = lattice->spin[i * N + j];
-
-            Spin right_adj = lattice->spin[i * N + ((j + 1) % N)];
-            Spin down_adj = lattice->spin[((i + 1) % N) * N + j];
-
-            adj_energy -= spin * (right_adj + down_adj);
-            field_energy -= B * spin;
-        }
+    for (int i = 0; i < N * N; i++) {
+        lattice->spin[i] = (rand() % 2) ? SPIN_UP : SPIN_DOWN;
     }
-    double total_energy = adj_energy + field_energy;
-    lattice->energy = total_energy;
-    return total_energy;
+
+    lattice->energy = ising_hamiltonian(lattice);
+    lattice->magnetisation = ising_magnetisation(lattice);
 }
 
-double ising_magnetisation(IsingLattice *lattice){
+double ising_hamiltonian(IsingLattice *lattice) {
     int N = lattice->N;
-    double total_magnetisation = 0;
+    double energy = 0.0;
 
-    for (int i=0; i<N*N; i++){
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+            Spin s = lattice->spin[i * N + j];
+
+            Spin right = lattice->spin[i * N + ((j + 1) % N)];
+            Spin down  = lattice->spin[((i + 1) % N) * N + j];
+            energy -= s * (right + down);
+            energy -= lattice->B * s;
+        }
+    }
+    return energy;
+}
+
+double ising_magnetisation(IsingLattice *lattice) {
+    int N = lattice->N;
+    double total_magnetisation = 0.0;
+
+    for (int i = 0; i < N * N; i++) {
         total_magnetisation += lattice->spin[i];
     }
 
-    double normalised_mag = total_magnetisation / (N * N);
-    lattice->magnetisation = normalised_mag;
-    return normalised_mag;
+    return total_magnetisation / (N * N);
 }
 
-double delta_energy(IsingLattice *lattice, int i, int j){
+double delta_energy(IsingLattice *lattice, int i, int j) {
     int N = lattice->N;
-    double B = lattice->B;
-
     Spin spin = lattice->spin[i * N + j];
-    Spin right_adj = lattice->spin[i * N + ((j + 1) % N)];
-    Spin left_adj  = lattice->spin[i * N + ((j - 1 + N) % N)];
-    Spin down_adj  = lattice->spin[((i + 1) % N) * N + j];
-    Spin up_adj    = lattice->spin[((i - 1 + N) % N) * N + j];
 
-    double delta_energy = 2 * spin * (right_adj + left_adj + down_adj + up_adj +  B);
+    Spin right = lattice->spin[i * N + ((j + 1) % N)];
+    Spin left  = lattice->spin[i * N + ((j - 1 + N) % N)];
+    Spin down  = lattice->spin[((i + 1) % N) * N + j];
+    Spin up    = lattice->spin[((i - 1 + N) % N) * N + j];
 
-    return delta_energy;
+    double delta = 2.0 * spin * (right + left + up + down + lattice->B);
+    return delta;
 }
 
-double metropolis_algorithm(IsingLattice *lattice){
+int metropolis_algorithm(IsingLattice *lattice) {
     int N = lattice->N;
-    double T = lattice->T;
-
     int i = rand() % N;
     int j = rand() % N;
 
-    double energy = delta_energy(lattice, i, j);
+    double dE = delta_energy(lattice, i, j);
 
-    if (energy <= 0){
+    if (dE <= 0.0) {
         lattice->spin[i * N + j] *= -1;
-        lattice->step += 1;
-        return energy;
+        return 1;
     } else {
-        double acceptance_prob = exp(-energy / T);
-        double r = (double)rand() / RAND_MAX;
-        if (r < acceptance_prob){
+        if (lattice->T <= 0.0) return 0;
+
+        double acceptance_prob = exp(-dE / lattice->T);
+        double r = (double)rand() / (double)RAND_MAX;
+        if (r < acceptance_prob) {
             lattice->spin[i * N + j] *= -1;
-            lattice->step += 1;
-            return energy;
-        } else {
-            return 0.0; 
+            return 1;
         }
     }
+    return 0;
 }
 
-void write_csv(IsingLattice *lattice){
+void write_csv(IsingLattice *lattice) {
+
     FILE *fp = fopen("ising_data.csv", "a");
-    if (fp == NULL){
-        perror("Error opening file for writing\n");
+    if (fp == NULL) {
+        perror("Error opening CSV");
         exit(EXIT_FAILURE);
     }
-    fprintf(fp, "%llu,%f,%f\n", lattice->step, ising_hamiltonian(lattice), ising_magnetisation(lattice));
+
+    int N = lattice->N;
+
+    lattice->energy = ising_hamiltonian(lattice);
+    lattice->magnetisation = ising_magnetisation(lattice);
+
+    fprintf(fp, "%llu,%f,%f",
+            lattice->step,
+            lattice->energy,
+            lattice->magnetisation);
+
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+
+            Spin s = lattice->spin[i * N + j];
+            int bit = (s + 1) / 2;
+
+            fprintf(fp, ",%d", bit);
+        }
+    }
+
+    fprintf(fp, "\n");
     fclose(fp);
 }
+

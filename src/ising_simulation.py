@@ -1,30 +1,33 @@
-import numpy as np 
+import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation, PillowWriter
 
-def plot_ising_data(file_path):
-    data = np.loadtxt(file_path, delimiter=',', skiprows=1)
-    steps = data[:, 0]
-    energies = data[:, 1]
-    magnetisations = data[:, 2]
+df = pd.read_csv('src/ising_data.csv', header=None)
 
-    fig, ax1 = plt.subplots()
+steps = df.iloc[:, 0].values
+energies = df.iloc[:, 1].values
+mags = df.iloc[:, 2].values
+spin_data = df.iloc[:, 3:].values         
 
-    color = 'tab:red'
-    ax1.set_xlabel('Steps')
-    ax1.set_ylabel('Energy', color=color)
-    ax1.plot(steps, energies, color=color)
-    ax1.tick_params(axis='y', labelcolor=color)
 
-    ax2 = ax1.twinx()  
-    color = 'tab:blue'
-    ax2.set_ylabel('Magnetisation', color=color)  
-    ax2.plot(steps, magnetisations, color=color)
-    ax2.tick_params(axis='y', labelcolor=color)
+grid_size = 256
+lattices = spin_data.reshape(-1, grid_size, grid_size) 
 
-    fig.tight_layout()  
-    plt.title('2D Ising Model Simulation Data')
-    plt.show()
+fig, ax = plt.subplots(figsize=(8, 8)) 
+im = ax.imshow(lattices[0], cmap='gray', vmin=0, vmax=1, interpolation='nearest')
+ax.set_title(f'Step {steps[0]:6d} | E = {energies[0]:7.1f} | M = {mags[0]:+.3f}',
+             fontsize=16, pad=20, family='monospace')
+ax.axis('off')
 
-if __name__ == "__main__":
-    plot_ising_data('src/ising_data.csv')
-    
+def update(frame):
+    im.set_array(lattices[frame])
+    ax.set_title(f'Step {steps[frame]:6d} | E = {energies[frame]:7.1f} | M = {mags[frame]:+.3f}',
+                 fontsize=16, pad=20, family='monospace')
+    return [im]
+
+ani = FuncAnimation(fig, update, frames=len(steps), interval=100, blit=True, repeat=False)
+ani.save('src/ising_evolution.gif',
+         writer=PillowWriter(fps=60),
+         dpi=100)                      
+
+plt.close(fig)
