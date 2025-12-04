@@ -10,7 +10,7 @@ mags = df.iloc[:, 2].values
 spin_data = df.iloc[:, 3:].values         
 
 
-grid_size = 256
+grid_size = 512
 lattices = spin_data.reshape(-1, grid_size, grid_size) 
 
 fig, ax = plt.subplots(figsize=(8, 8)) 
@@ -27,7 +27,7 @@ def update(frame):
 
 ani = FuncAnimation(fig, update, frames=len(steps), interval=100, blit=True, repeat=False)
 ani.save('src/ising_evolution.gif',
-         writer=PillowWriter(fps=60),
+         writer=PillowWriter(fps=120),
          dpi=100)                      
 
 plt.close(fig)

@@ -55,7 +55,7 @@ int main() {
 
             lattice->step = step;
 
-            if (step % 1000 == 0) { 
+            if (step % 200 == 0) { 
                 write_csv(lattice);
             }
         }
