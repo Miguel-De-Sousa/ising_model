@@ -27,6 +27,7 @@ void write_csv(IsingLattice *lattice);
 
 int main() {
     srand((unsigned)time(NULL));
+    int CASE;
     int N;
     double T;
     double B;
@@ -34,13 +35,71 @@ int main() {
 
     printf("2D Ising Model Simulation\n");
     printf("-------------------------\n");
-    printf("Enter N dimension for square lattice: \n");
-    if (scanf("%d", &N) != 1) return 1;
-    printf("Enter Temperature T: \n");
-    if (scanf("%lf", &T) != 1) return 1;
-    printf("Enter External Magnetic Field B: \n");
-    if (scanf("%lf", &B) != 1) return 1;
-    printf("Begin simulation with N=%d, T=%f, B=%f? \n Y/N \n", N, T, B);
+    printf("Select N dimension for square lattice: \n");
+    printf("1) 512x512  2) 256x256  3) Custom (Enter digit of choice)\n>");
+    if (scanf("%d", &CASE)!=1){
+        printf("Error: Invalid Input \n");
+        return 1;
+    }
+    switch (CASE){
+        case 1:
+            N = 512;
+            break;
+        case 2:
+            N=256;
+            break;
+        case 3:
+            printf("Enter custom square lattice dimenion:\n>");
+            if (scanf("%d", &CASE) != 1) return 1;
+            N = CASE;
+            break;
+        default:
+            printf("Error: invalid choice.\n");
+            return 1;
+    }
+    printf("\nSelect temperature T for simulation:\n");
+    printf("1) Low T  2) Critical T  3) High T  4) Custom\n>");
+    if (scanf("%d", &CASE) != 1) return 1;
+    switch (CASE){
+        case 1:
+            T = 1.5;
+            break;
+        case 2:
+            T = 2.269;
+            break;
+        case 3:
+            T = 7.5;
+            break;
+        case 4:
+            printf("Enter custom temperature: (J/k unitless)\n>");
+            if (scanf("%d", &CASE) != 1) return 1;
+            T = CASE;
+            break;
+        default:
+            printf("Error: invalid choice.\n");
+            return 1;
+    }
+    printf("\nSelect external magnetic field B:\n");
+    printf("1) No field  2) Field on  3) Custom \n>");
+    if (scanf("%d", &CASE) != 1) return 1;
+    switch (CASE){
+        case 1:
+            B = 0;
+            break;
+        case 2:
+            B = 0.1;
+            break;
+        case 3:
+            printf("Enter custom field strength:\n>");
+            if (scanf("%d", &CASE) != 1) return 1;
+            B = CASE;
+            break;
+        default:
+            printf("Error: invalid choice.\n");
+            return 1;
+    }
+
+    printf("Begin Ising simulation with N = %d, T = %.2f, B = %.2f? \n Y/N \n>", N, T, B);
     scanf(" %c", &proceed);
 
     if (proceed == 'Y' || proceed == 'y') {

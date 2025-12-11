@@ -2,7 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation, PillowWriter
 
-df = pd.read_csv('src/ising_data.csv', header=None)
+df = pd.read_csv('data/ising_data.csv', header=None)
 
 steps = df.iloc[:, 0].values
 energies = df.iloc[:, 1].values
@@ -21,7 +21,7 @@ ax.axis('off')
 
 def update(frame):
     im.set_array(lattices[frame])
-    ax.set_title(f'Step {steps[frame]:6d} | E = {energies[frame]:7.1f} | M = {mags[frame]:+.3f}',
+    ax.set_title(f'Step {steps[frame]:6d} | E = {int(round(energies[frame], -3))} | M = {mags[frame]:+.2f}',
                  fontsize=16, pad=20, family='monospace')
     return [im]
 
