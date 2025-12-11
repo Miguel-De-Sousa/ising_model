@@ -1,3 +1,15 @@
+/*
+ * Assessment 3 for PHY2027
+ * Author: Miguel de Sousa
+ * Date: 12/12/25
+*/
+
+/*
+ * A program to create a general 2-Dimensional Ising model simulation using snapshot frames, converted into video using Python.
+ * The program allow the user to select pre-determined or custom parameters for simulation run.
+ * The model uses a random generation of up, down spin values in an N x N lattice.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
