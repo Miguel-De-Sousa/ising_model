@@ -63,8 +63,7 @@ int main() {
             break;
         case 3:
             printf("Enter custom square lattice dimenion:\n>");
-            if (scanf("%d", &CASE) != 1) return 1;
-            N = CASE;
+            if (scanf("%d", &N) != 1) return 1;
             break;
         default:
             printf("Error: invalid choice.\n");
@@ -85,8 +84,7 @@ int main() {
             break;
         case 4:
             printf("Enter custom temperature: (J/k unitless)\n>");
-            if (scanf("%d", &CASE) != 1) return 1;
-            T = CASE;
+            if (scanf("%lf", &T) != 1) return 1;
             break;
         default:
             printf("Error: invalid choice.\n");
@@ -104,8 +102,7 @@ int main() {
             break;
         case 3:
             printf("Enter custom field strength:\n>");
-            if (scanf("%d", &CASE) != 1) return 1;
-            B = CASE;
+            if (scanf("%lf", &B) != 1) return 1;
             break;
         default:
             printf("Error: invalid choice.\n");
