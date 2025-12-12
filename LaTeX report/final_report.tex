@@ -12,6 +12,7 @@
 \usepackage{xcolor}
 \usepackage{fancyhdr}
 \usepackage{inconsolata}
+\usepackage[hidelinks]{hyperref}
 
 % Code listing style
 \lstset{
@@ -66,27 +67,11 @@ The Ising model exhibits a phase transition at a critical temperature $T_c$, bel
 \subsection{Data Structure and Initialisation (Part a)}
 I began by defining a structure type to represent the 2D Ising lattice, which included all necessary parameters as structure members for the model such as its N-dimenionsionality, values for temperature T, external magnetic field B, total energy and magnetisation of the lattice, and a pointer to an array of spins.
 
-\begin{lstlisting}
-typedef char Spin;
-static const Spin SPIN_UP   =  1;
-static const Spin SPIN_DOWN = -1;
-
-typedef struct{
-    int N;
-    Spin *spin;
-    double T;
-    double B;
-    unsigned long long step;
-    double energy;
-    double magnetisation;
-} IsingLattice;
-\end{lstlisting}
-
-Lines 1-3: Assigning a char type to Spin, with constants for SPIN\_UP and SPIN\_DOWN defined with this new type. 
+Lines 18-20: Assigning a char type to Spin, with constants for SPIN\_UP and SPIN\_DOWN defined with this new type. 
 The char data type forces each spin to occupy only 1 byte of memory, which is efficient for large n by n lattices. 
 The Spin type is used throughout the code, so defining it at the start improves code readability.\medbreak
 
-Lines 5-14: Creating the IsingLattice structure type with members for lattice size N, pointer to spin array, temperature T, external magnetic field B, current step number, total energy, and total magnetisation.
+Lines 22-30: Creating the IsingLattice structure type with members for lattice size N, pointer to spin array, temperature T, external magnetic field B, current step number, total energy, and total magnetisation.
 Structures are useful for grouping related data together, so its perfect for representing the lattice and its properties.
 I used double for T, B, energy, and magnetisation to allow for fractional values and higher precision in calculations.
 The step member is an unsigned long long to allow a large number of Monte Carlo steps.
@@ -94,58 +79,90 @@ Proving its reuseability, the spin pointer defined in the sructure types is allo
 
 After defining the structure type, I implemented the initialisation function to set up the lattice with random n by n spins.
 
-\begin{lstlisting}
-IsingLattice *create_lattice(int N, double T, double B){
-
-    IsingLattice *lattice = malloc(sizeof(IsingLattice));
-
-    if (lattice == NULL){
-        fprintf(stderr, "Memory allocation failed\n");
-        exit(EXIT_FAILURE);
-    }
-
-    lattice->N = N;
-    lattice->T = T;
-    lattice->B = B;
-    lattice->step = 0;
-    lattice->spin = malloc(N * N * sizeof(char));
-
-    if (lattice->spin == NULL){
-        fprintf(stderr, "Memory allocation for spin failed\n");
-        free(lattice);
-        exit(EXIT_FAILURE);
-    }
-
-    for (int i = 0; i < N * N; i++){
-        lattice->spin[i] = (rand() % 2) ? SPIN_UP : SPIN_DOWN;
-    }
-
-    return lattice;
-}
-\end{lstlisting}
-
-Lines 1-8: The create\_function takes lattice parameters as arguments and it allocates enough memory for the new lattice instance using malloc
+Lines 145-150: The create\_function takes lattice parameters as arguments and it allocates enough memory for the new lattice instance using malloc
 and the size of the IsingLattice structure type.
 It checks if the allocation was successful, printing an error message and exiting if not.
 The structure type pointer is initalised within the fucntion as *lattice.\medbreak
 
-Lines 10-13: Assign the input parameters N, T, and B to the corresponding structure members in the IsingLattice using -> structure pointer notation.\medbreak
+Lines 152-158: Assign the input parameters to the corresponding structure members in the IsingLattice using structure pointer notation.\medbreak
 
-Lines 14-24: Allocate memory for the spin array within the lattice structure using malloc.
+Lines 160-164/169-178: Allocate memory for the spin array within the lattice structure using malloc.
 The size is n by n multiplied by the size of a char (1 byte) since each spin is represented as a char.
 It checks for successful allocation, freeing the previously allocated lattice memory location if the spin allocation fails.
 I then assigned each lattice spin array value in the lattice to a random value of SPIN\_UP or SPIN\_DOWN using a count controlled loop with boundaries at 0 and n by n.
-The rand() function acted as the randomiser, with modulus 2 giving eitehr values of 0 or 1, which were mapped to either SPIN\_UP or SPIN\_DOWN.\medbreak
+The rand() function acted as the randomiser, with modulus 2 giving eitehr values of 0 or 1, which were mapped to either SPIN\_UP or SPIN\_DOWN. The energy and magnetisation
+values where also initialised using the ebergy and magnetisation functions\medbreak
 
-Lines 26: Finally, the function returns a pointer to the newly created and initialised lattice instance.
+Lines 166: Finally, the function returns a pointer to the newly created and initialised lattice instance.
 
 
 \subsection{Energy and Magnetisation Calculation (Part a)}
+I proceeded to create a total energy function for my ising model using the hamiltonian
+research stated in the theory section. The ising\_hamiltonian takes the N value of the lattice
+and also initialises a local variable energy with a double type to store all energy components.
+
+Lines 184-186: The code uses nested for loops to iterate through every spin in the lattice, the first iterating through rows and the second through columns.
+The s value assigned the new datatype Spin, retreives the current spin values for the lattice as a one dimensional representation of the two dimensions lattice.
+
+Lines 188-194: I iterate through every spin value ($\delta$) in the lattice and sum the energy contribution from the two possible sources: the nearest-neighbor interactions and the external magnetic field (B), if present.
+This task was made efficient by the initial mapping of the two-dimensional lattice onto a single one-dimensional array. This mapping allows for fast index lookups and ensures efficiency during the summation loop.
+Each value was added onto the double value created earlier and the energy returned from the function.
+
+Once the total energy function was created, I began working on the function to output normalised values of magnetisation.
+
+
+
 \subsection{Metropolis Algorithm (Part b)}
+
+
 \subsection{Visualisation Method (Part c)}
+For my simulation, I decided to take guided user inputs using switch cases for standard ising states.
+The program will start by giving users flexibility with choices.
+
+Lines 40-115: The user is prompted with multiple input choices for N, T and B values.
+These are selected as standard values you would use to extract information from thes imualtion such as tenpearture being broken down
+into Low, Critical and High options to view the possible extreme states of the ising simulation. These inputs are all sanitised, checking if the users did in fact only input one value. Furthermore,
+default case denies any value that doesnt sit with the required format. Users also have a custom choice.
+To avoid datatype issues, a temporary integer CASE was created to handle all users selections as using varaibles such as T with double is not valid for these cases.
+
+Lines 117-143: The program checks for a valid proceed option.
+If true, a new instance of an Ising Lattice is created with previously selcted N, T and B values.
+After the Lattice has been initalised the main simulation flow can begin, I create a loop defining the Monte Carlo Steps of the program (simulation time),
+with the inner loop iterating through every lattice value. Each step in the Monte Carlo acts as a sweep of the lattice where every spin experineces a possible flip change 
+caused by the metropolis algorithm. Each step is updated directly on the lattice and snapshots are taken in increments of 200 steps until the program loop finishes.
+All information being passed on to the python program is handled by the write\_csv function.
+
+Lines 244--274: The write\_csv first checks for the successful opening of the 
+ising\_data csv file before proceeding.
+The function takes all values of the ising lattice, including a nested loop sweep of the lattice spin values and writes them to
+a single csv file. This includes updated magnetisation, energy spin flip values.
 
 \section{Program Exploration and Results}
 \subsection{Temperature Effect with Zero External Field ($B=0$)}
+\subsubsection{Low Temperature $\approx 1.5Jk_B^{-1}$}
+
+134-137: Once the simulation csv is complete, the user is notified and the lattice is freed from memory.
+
+\href{https://github.com/Miguel-De-Sousa/ising_model/blob/main/data/ising_evolution_low.gif}
+{\textbf{View Ising Low-Temperature Simulation (Online)}}
+\label{fig:ising_evolution_low_online}
+
+
+\subsubsection{Critical Temperature $\approx 2.269Jk_B^{-1}$}
+
+\href{https://github.com/Miguel-De-Sousa/ising_model/blob/main/data/ising_evolution_critical.gif}
+{\textbf{View Ising Critical-Temperature Simulation (Online)}}
+\label{fig:ising_evolution_critical_online}
+
+
+\subsubsection{High Temperature $\approx 7.5Jk_B^{-1}$}
+
+\href{https://github.com/Miguel-De-Sousa/ising_model/blob/main/data/ising_evolution_high.gif}
+{\textbf{View Ising High-Temperature Simulation (Online)}}
+\label{fig:ising_evolution_high_online}
+
+
+
 \subsection{Effect of External Magnetic Field ($B \neq 0$)}
 \subsection{Boundary and Neighbour Effects}
 
