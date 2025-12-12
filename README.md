@@ -17,5 +17,4 @@ Data Structure: Uses a struct (IsingLattice) to manage all necessary parameters 
 
 Scientific Output: Data is written to a CSV file, ensuring compatibility with standard scientific plotting tools (e.g., Python, Gnuplot).
 
-💡Thank you
-Thanks for taking a look at my project!!
+💡Thanks for taking a look at my project!!
