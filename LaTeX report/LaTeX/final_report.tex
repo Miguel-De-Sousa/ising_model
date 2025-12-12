@@ -122,9 +122,9 @@ to compute the energy change if the spin flip were to occur.\medbreak
 Lines 228–241: If the energy change is $\leq 0$, then the energy change is favourable, and the spin flip is always accepted. 
 Nothing is accepted at absolute zero temperature, so that case can be ignored here.
 The interesting case is when the energy change $\geq 0$. 
-In this situation, the acceptance follows a Boltzmann factor whose value is stored in a $\text{double}$.
+In this situation, the acceptance follows a Metropolis criteria.
 Using the $\text{rand()}$ function again, I created a randomised $r$ value for each iteration of the algorithm,
-and when $r$ is less than the acceptance probability (Boltzmann factor), the spin flip is successful.\medbreak
+and when $r$ is less than the acceptance probability (Metropolis criteria), the spin flip is successful.\medbreak
 
 \subsection{Visualisation Method (Part c)}
 For my simulation, I decided to take guided user inputs using $\text{switch}$ cases to choose standard Ising states.

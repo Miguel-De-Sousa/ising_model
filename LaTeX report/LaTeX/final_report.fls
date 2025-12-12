@@ -1,8 +1,8 @@
-PWD /Users/miguel/GitHub/isling_model/LaTeX report
+PWD /Users/miguel/GitHub/isling_model/LaTeX report/LaTeX
 INPUT /usr/local/texlive/2025/texmf.cnf
 INPUT /usr/local/texlive/2025/texmf-dist/web2c/texmf.cnf
 INPUT /usr/local/texlive/2025/texmf-var/web2c/pdftex/pdflatex.fmt
-INPUT /Users/miguel/GitHub/isling_model/LaTeX report/final_report.tex
+INPUT /Users/miguel/GitHub/isling_model/LaTeX report/LaTeX/final_report.tex
 OUTPUT final_report.log
 INPUT /usr/local/texlive/2025/texmf-dist/tex/latex/base/article.cls
 INPUT /usr/local/texlive/2025/texmf-dist/tex/latex/base/article.cls

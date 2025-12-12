@@ -1,6 +1,6 @@
 # Fdb version 4
-["pdflatex"] 1765540026.52516 "/Users/miguel/GitHub/isling_model/LaTeX report/final_report.tex" "final_report.pdf" "final_report" 1765540027.08216 0
-  "/Users/miguel/GitHub/isling_model/LaTeX report/final_report.tex" 1765540026.32857 17952 d69e003fd482a43d91d5943f2297cab6 ""
+["pdflatex"] 1765541336.17772 "/Users/miguel/GitHub/isling_model/LaTeX report/LaTeX/final_report.tex" "final_report.pdf" "final_report" 1765541336.72083 0
+  "/Users/miguel/GitHub/isling_model/LaTeX report/LaTeX/final_report.tex" 1765541335.4488 17915 83db557342fc9deae9750593e743b95b ""
   "/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc" 1136849721 2900 1537cc8184ad1792082cd229ecc269f4 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/tfm/jknappen/ec/tcrm1000.tfm" 1136768653 1536 e07581a4bb3136ece9eeb4c3ffab8233 ""
@@ -118,9 +118,9 @@
   "figures/critical_evolution_plot.png" 1765534106.15056 52461 6c0dfcd307ade7b1bbdfff1726699f39 ""
   "figures/high_evolution_plot.png" 1765534162.68097 61507 db6e36a23e5234688f431637113b1287 ""
   "figures/low_evolution_plot.png" 1765534192.89101 47425 d618046c60160c0416fb3e3d1891c2a6 ""
-  "final_report.aux" 1765540027.03501 3818 7583fe5ba938a86100e765c52acaba75 "pdflatex"
-  "final_report.out" 1765540027.03544 3129 90242959bdbadfddd3771c3cead3854f "pdflatex"
-  "final_report.tex" 1765540026.32857 17952 d69e003fd482a43d91d5943f2297cab6 ""
+  "final_report.aux" 1765541336.67757 3818 7583fe5ba938a86100e765c52acaba75 "pdflatex"
+  "final_report.out" 1765541336.6781 3129 90242959bdbadfddd3771c3cead3854f "pdflatex"
+  "final_report.tex" 1765541335.4488 17915 83db557342fc9deae9750593e743b95b ""
   (generated)
   "final_report.aux"
   "final_report.log"
