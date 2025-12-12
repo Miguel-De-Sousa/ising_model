@@ -235,9 +235,9 @@ double delta_energy(IsingLattice *lattice, int i, int j) {
     Spin right = lattice->spin[i * N + ((j + 1) % N)];
     Spin left  = lattice->spin[i * N + ((j - 1 + N) % N)];
     Spin down  = lattice->spin[((i + 1) % N) * N + j];
-    Spin up    = lattice->spin[((i - 1 + N) % N) * N + j];
+    Spin up    = lattice->spin[((i - 1 + N) % N) * N + j]; 
 
-    double delta = 2.0 * spin * (right + left + up + down + lattice->B);
+    double delta = 2.0 * spin * (right + left + up + down + lattice->B); // Calculate energy change for flipping the spin
     return delta;
 }
 
