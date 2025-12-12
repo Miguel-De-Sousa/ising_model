@@ -113,6 +113,21 @@ Once the total energy function was created, I began working on the function to o
 
 
 \subsection{Metropolis Algorithm (Part b)}
+The metropolis algorithm is the main function governing the evolution of the system.
+it decides whether a randomly chosen spin is likely to flip state based on probablity.
+
+Lines 222-224: Using rand(), random i and j locations can be chosen to pinpoint a spin vaue within the lattice in an unbiased fashion.
+
+Lines 226: Instead of calculating total energy again, I used the chosen spin location and the chnage in energy function
+to figure out the energy chnage if the spin flip did occur.
+
+Lines 228-241: If the energy chnage is less than 0 for the spin then the energy chnage will awlays be favourable and you can flip that particular lattice spin and return 1.
+Nothing is accepted at absolute zero temperature therfore than can be ignored as an option.
+This leaves the intresting part of the flip probability, energy levels greater than 0. 
+In this case it follows a boltzmann factor whose value is stored in a double.
+Using the rand function again, I created a randomised r value for each iteration of this algorithm,
+when r is less than the acceptance probability (boltzmann factor) then the lattice energy flip is succesful.
+
 
 
 \subsection{Visualisation Method (Part c)}
@@ -137,16 +152,20 @@ ising\_data csv file before proceeding.
 The function takes all values of the ising lattice, including a nested loop sweep of the lattice spin values and writes them to
 a single csv file. This includes updated magnetisation, energy spin flip values.
 
+134-137: Once the simulation csv is complete, the user is notified and the lattice is freed from memory.
+
 \section{Program Exploration and Results}
 \subsection{Temperature Effect with Zero External Field ($B=0$)}
 \subsubsection{Low Temperature $\approx 1.5Jk_B^{-1}$}
-
-134-137: Once the simulation csv is complete, the user is notified and the lattice is freed from memory.
 
 \href{https://github.com/Miguel-De-Sousa/ising_model/blob/main/data/ising_evolution_low.gif}
 {\textbf{View Ising Low-Temperature Simulation (Online)}}
 \label{fig:ising_evolution_low_online}
 
+At a temperature of 1.5, the Ising model simulation is below its critical temperature and therefore lies within the ferromagnetic phase.
+In this phase, the spins tend to align in the same direction, resulting in a net magnetic moment.
+As the simulation progresses, we see the formtaion of large domains of aligned spins, leading to a normalised magnetisation approaching 1.
+Thermal fluctuations are minimal at this low temperature, so the spins remain mostly stable once they align.
 
 \subsubsection{Critical Temperature $\approx 2.269Jk_B^{-1}$}
 
@@ -154,6 +173,10 @@ a single csv file. This includes updated magnetisation, energy spin flip values.
 {\textbf{View Ising Critical-Temperature Simulation (Online)}}
 \label{fig:ising_evolution_critical_online}
 
+At the critical temperature of approximately 2.269, the Ising model undergoes a phase transition from the ferromagnetic to the paramagnetic phase.
+In this sumulation, we see many fluctuations in spin alignement as the system has high sensitivity to thermal energy.
+Large clusters or domains of aligned spins form and disintegrate frequently, leading to a normalised magnetisation that hovers around zero.
+This is a characteristic behavior at the critical point, which remains the same even if the simulation is scaled up to larger lattice sizes.
 
 \subsubsection{High Temperature $\approx 7.5Jk_B^{-1}$}
 
@@ -161,9 +184,17 @@ a single csv file. This includes updated magnetisation, energy spin flip values.
 {\textbf{View Ising High-Temperature Simulation (Online)}}
 \label{fig:ising_evolution_high_online}
 
-
+At a high temperature of 7.5, the Ising model is well above its critical temperature and remains in the paramagnetic phase.
+In this phase, thermal fluctuations dominate, causing the spins to be orientated randomly with no possibility for order.
+As the simulation runs, we can see that the spins to not form any significant clusters resulting in a normalised magnetisation that stays close to zero.
+This high temperature causes a disordered state for the remaining duration of the simulation.
 
 \subsection{Effect of External Magnetic Field ($B \neq 0$)}
+
+\href{https://github.com/Miguel-De-Sousa/ising_model/blob/main/data/ising_evolution_field.gif}
+{\textbf{View Ising Simulation with $\beta$ field(Online)}}
+\label{fig:ising_evolution_field_online}
+
 \subsection{Boundary and Neighbour Effects}
 
 \section{Conclusion}
