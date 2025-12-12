@@ -1,0 +1,272 @@
+%============================================================
+% PHY2027 Assessment 3 – Final Project Report
+% Option 3: 2D Ising Model Simulation
+%============================================================
+\documentclass[10pt,a4paper]{article}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{caption,subcaption}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage{inconsolata}
+\usepackage[hidelinks]{hyperref}
+
+% Code listing style
+\lstset{
+    language=C,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue}\bfseries,
+    commentstyle=\color{gray},
+    numbers=left,
+    numbersep=8pt,
+    frame=single,
+    captionpos=b,
+    breaklines=true
+}
+
+% Header/Footer
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{PHY2027 – Ising Model Report}
+\lhead{Miguel de Sousa}
+\cfoot{\thepage}
+
+\title{Two-Dimensional Ising Model Simulation\\
+       \large PHY2027 – Scientific Programming in C – Final Project Report}
+\author{Miguel de Sousa}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Theory}
+[1] The Ising model, introduced by Ernst Ising in 1925, is a mathematical model consisting of a lattice of 'spin' variables $\sigma_\alpha$, which can take discrete values of $\pm1$.
+These spins represent magnetic dipole moments of atomic spins that can be in one of two states: up (+1) or down (-1). The model is used to study phase transitions and critical phenomena in statistical mechanics.
+[1] Any two of these spins have a mutual interaction energy:
+\begin{equation}
+    -E_{\alpha\beta}\sigma_\alpha\sigma_\beta
+\end{equation}
+
+[1] Additionally, an external magnetic field $B$ can interact with each spin, contributing an energy term of
+\begin{equation}
+    -B\sigma_\alpha
+\end{equation}
+
+The total energy of a configuration of spins on a lattice can be expressed as
+\begin{equation}
+    E = -\sum_{\langle \alpha,\beta \rangle} E_{\alpha\beta}\sigma_\alpha\sigma_\beta - B\sum_{\alpha} \sigma_\alpha
+\end{equation}
+where the first sum is over all pairs of neighbouring spins.
+The Ising model exhibits a phase transition at a critical temperature $T_c$, below which the spins tend to align, resulting in spontaneous magnetisation, and above which the spins are disordered.
+
+\section{Implementation}
+\subsection{Data Structure and Initialisation (Part a)}
+I began by defining a structure type to represent the 2D Ising lattice, which included all necessary parameters as structure members for the model, such as its N-dimensionality, values for temperature $T$, external magnetic field $B$, total energy and magnetisation of the lattice, and a pointer to an array of spins.
+
+Lines 18–20: A $\text{char}$ type is assigned to $\text{Spin}$, with constants for $\text{SPIN\_UP}$ and $\text{SPIN\_DOWN}$ defined using this new type. 
+The $\text{char}$ data type forces each spin to occupy only 1 byte of memory, which is efficient for large $N \times N$ lattices. 
+The $\text{Spin}$ type is used throughout the code, so defining it at the start improves readability.\medbreak
+
+Lines 22–30: The $\text{IsingLattice}$ structure type is created with members for lattice size $N$, a pointer to the spin array, temperature $T$, external magnetic field $B$, current step number, total energy, and total magnetisation.
+Structures are useful for grouping related data together, so this is ideal for representing the lattice and its properties.
+I used $\text{double}$ for $T$, $B$, energy, and magnetisation to allow for fractional values and higher precision in calculations.
+The $\text{step}$ member is an $\text{unsigned long long}$ to allow a large number of Monte Carlo steps.
+The spin pointer defined in the structure is assigned the newly created $\text{Spin}$ data type.\medbreak
+
+After defining the structure type, I implemented the initialisation function to set up the lattice with random $N \times N$ spins.
+
+Lines 145–150: The $\text{create\_function}$ takes lattice parameters as arguments and allocates memory for the new lattice instance using $\text{malloc}$
+and the size of the $\text{IsingLattice}$ structure type.
+It checks whether the allocation was successful, printing an error message and exiting if it was not.
+The structure type pointer is initialised within the function as $\text{*lattice}$.\medbreak
+
+Lines 152–158: The input parameters are assigned to the corresponding structure members in the $\text{IsingLattice}$ using structure pointer notation.\medbreak
+
+Lines 160–164/169–178: Memory is allocated for the spin array within the lattice structure using $\text{malloc}$.
+The size is $N \times N$ multiplied by the size of a $\text{char}$ (1 byte), since each spin is represented as a $\text{char}$.
+It checks for successful allocation, freeing the previously allocated lattice memory if the spin allocation fails.
+I then assigned each lattice spin array value to a random value of $\text{SPIN\_UP}$ or $\text{SPIN\_DOWN}$ using a count-controlled loop with boundaries at 0 and $N \times N$.
+The $\text{rand()}$ function was used as the randomiser, with modulus 2 returning either 0 or 1, mapped to either $\text{SPIN\_UP}$ or $\text{SPIN\_DOWN}$. The energy and magnetisation
+values were also initialised using the energy and magnetisation functions.\medbreak
+
+Line 166: Finally, the function returns a pointer to the newly created and initialised lattice instance.\medbreak
+
+\subsection{Energy and Magnetisation Calculation (Part a)}
+I proceeded to create a total energy function for my Ising model using the Hamiltonian
+described in the theory section. The $\text{ising\_hamiltonian}$ takes the $N$ value of the lattice
+and initialises a local variable $\text{energy}$ with a $\text{double}$ type to store all energy components.
+
+Lines 184–186: The code uses nested $\text{for}$ loops to iterate through every spin in the lattice, the first iterating through rows and the second through columns.
+The $s$ value, assigned the $\text{Spin}$ datatype, retrieves the current spin values for the lattice as a one-dimensional representation of the two-dimensional array.\medbreak
+
+Lines 188–194: I iterate through every spin value ($\sigma$) in the lattice and sum the energy contribution from the two possible sources: nearest-neighbour interactions and the external magnetic field ($B$), if present.
+This task is made efficient by mapping the two-dimensional lattice onto a single one-dimensional array, allowing for faster index lookups and improving efficiency during the summation loop.
+Each value is added to the $\text{double}$ energy variable, and the total energy is returned from the function.\medbreak
+
+Once the total energy function was created, I began working on the function to output normalised values of magnetisation.
+
+\subsection{Metropolis Algorithm (Part b)}
+The Metropolis algorithm is the function describing the evolution of the system.
+It decides whether a randomly chosen spin is likely to flip based on probability.
+
+Lines 222–224: Using $\text{rand()}$, random $i$ and $j$ locations are chosen to pinpoint a spin value within the lattice in an unbiased manner.\medbreak
+
+Line 226: Instead of calculating the total energy again, I used the chosen spin location and the change in energy function
+to compute the energy change if the spin flip were to occur.\medbreak
+
+Lines 228–241: If the energy change is $\leq 0$, then the energy change is favourable, and the spin flip is always accepted. 
+Nothing is accepted at absolute zero temperature, so that case can be ignored here.
+The interesting case is when the energy change $\geq 0$. 
+In this situation, the acceptance follows a Boltzmann factor whose value is stored in a $\text{double}$.
+Using the $\text{rand()}$ function again, I created a randomised $r$ value for each iteration of the algorithm,
+and when $r$ is less than the acceptance probability (Boltzmann factor), the spin flip is successful.\medbreak
+
+\subsection{Visualisation Method (Part c)}
+For my simulation, I decided to take guided user inputs using $\text{switch}$ cases to choose standard Ising states.
+The program begins by giving users flexibility with their choices.
+
+Lines 40–115: The user is prompted with multiple input options for $N$, $T$, and $B$.
+These values are selected as standard cases used to extract information from the simulation, with temperature being grouped into Low, Critical, and High to view extreme states of the Ising simulation. All inputs are sanitised, ensuring that the user enters only a single valid value.
+The $\text{default}$ case rejects any invalid input. Users also have a custom option.
+To avoid datatype issues, a temporary integer $\text{CASE}$ was created to handle all user selections, since variables such as $T$ with $\text{double}$ type cannot be used for switch cases.\medbreak
+
+Lines 117–143: The program checks for a valid proceed option.
+If true, a new instance of an Ising lattice is created with the previously selected $N$, $T$, and $B$ values.
+Once the lattice is initialised, the main simulation begins. I created a loop defining the Monte Carlo steps (simulation time),
+with the inner loop iterating through every lattice value. Each Monte Carlo step acts as a sweep of the lattice where every spin undergoes a possible flip
+from the Metropolis algorithm. Each step updates the lattice directly, and snapshots are taken in increments of 200 steps until the loop finishes.
+All information passed to the Python program is handled by the $\text{write\_csv}$ function.\medbreak
+
+Lines 244–274: The $\text{write\_csv}$ function first checks whether the 
+$\text{ising\_data.csv}$ file has opened successfully before proceeding.
+The function takes all values of the Ising lattice, including a nested sweep of the lattice spin values, and writes them to
+a single CSV file. This includes updated magnetisation, energy, and spin values.\medbreak
+
+Lines 134–137: Once the simulation CSV is complete, the user is notified and the lattice is freed from memory.\medbreak
+
+\section{Program Exploration and Results}
+\subsection{Temperature Effect with Zero External Field ($B=0$)}
+\subsubsection{Low Temperature $\approx 1.5Jk_B^{-1}$}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/low_evolution_plot.png}
+    \caption{Ising Model Simulation at Low Temperature ($T \approx 1.5Jk_B^{-1}$)}
+    \label{fig:ising_evolution_low}
+\end{figure}
+
+\centerline{
+\href{https://github.com/Miguel-De-Sousa/ising_model/blob/main/data/ising_evolution_low.gif}
+{\underline{\textbf{View Ising Low-Temperature Simulation (Online)}}}
+\label{fig:ising_evolution_low_online}}\medbreak
+
+At a temperature of 1.5, the Ising model simulation is below its critical temperature and therefore lies within the ferromagnetic phase.
+In this phase, the spins tend to align in the same direction, resulting in a net magnetic moment.
+As the simulation progresses, we see the formation of large domains of aligned spins, leading to a normalised magnetisation approaching 1.
+Thermal fluctuations are minimal at this low temperature, so the spins remain mostly stable once they align.
+
+\subsubsection{Critical Temperature $\approx 2.269Jk_B^{-1}$[2]}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/critical_evolution_plot.png}
+    \caption{Ising Model Simulation at Critical Temperature ($T \approx 2.269Jk_B^{-1}$)[2]}
+    \label{fig:ising_evolution_critical}
+\end{figure}
+
+\centerline{
+\href{https://github.com/Miguel-De-Sousa/ising_model/blob/main/data/ising_evolution_critical.gif}
+{\underline{\textbf{View Ising Critical-Temperature Simulation (Online)}}}
+\label{fig:ising_evolution_critical_online}}\medbreak
+
+At the critical temperature of approximately 2.269, the Ising model undergoes a phase transition from the ferromagnetic to the paramagnetic phase.
+In this simulation, many fluctuations in spin alignment occur as the system becomes highly sensitive to thermal energy.
+Large clusters or domains of aligned spins form and disintegrate frequently, leading to a normalised magnetisation that hovers around zero.
+This behaviour is characteristic of the critical point and remains consistent even when the simulation is scaled to larger lattice sizes.
+
+\subsubsection{High Temperature $\approx 7.5Jk_B^{-1}$}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/high_evolution_plot.png}
+    \caption{Ising Model Simulation at High Temperature ($T \approx 7.5Jk_B^{-1}$)}
+    \label{fig:ising_evolution_high}
+\end{figure}
+
+\centerline{
+\href{https://github.com/Miguel-De-Sousa/ising_model/blob/main/data/ising_evolution_high.gif}
+{\underline{\textbf{View Ising High-Temperature Simulation (Online)}}}
+\label{fig:ising_evolution_high_online}}\medbreak
+
+At a high temperature of 7.5, the Ising model is well above its critical temperature and remains in the paramagnetic phase.
+In this phase, thermal fluctuations dominate, causing the spins to become randomly oriented with no possibility of order.
+As the simulation runs, the spins do not form significant clusters, resulting in a normalised magnetisation that stays close to zero.
+This high temperature produces a disordered state for the entire simulation.
+
+\subsection{Effect of External Magnetic Field ($B \neq 0$)}
+
+\centerline{
+\href{https://github.com/Miguel-De-Sousa/ising_model/blob/main/data/ising_evolution_field.gif}
+{\underline{\textbf{View Ising Field Simulation (Online)}}}
+\label{fig:ising_evolution_field_online}}\medbreak
+
+When an external magnetic field is applied to the Ising model, it influences the alignment of the spins in the lattice.
+In this simulation, I observed the effects when a moderate external field ($B=1.0$) is applied at the critical temperature.
+The external field biases the spins to align in its direction, leading to a net magnetisation even at the critical temperature,
+where normalised magnetisation normally hovers around zero.
+Interestingly, the presence of the external field suppresses the large fluctuations seen in the previous critical simulation; however, 
+the system still shows the creation and destruction of small clusters, just slightly larger than those in the high-temperature simulation without a field.
+This means that the external magnetic field stabilises the spins at a constant value for the simulation duration, unlike the low-temperature simulation.
+
+\subsection{Boundary and Neighbour Effects}
+In the Ising model simulation, I implemented periodic boundary conditions to ensure that the lattice behaves as if it were infinite.
+This means that spins on one edge of the lattice interact with spins on the opposite edge, effectively “wrapping around” the lattice.
+Without this boundary condition, the energy calculations would be inaccurate because edge cases would have fewer neighbours.
+The boundary conditions also ensure that the Ising model accurately represents physical systems; without them, theoretical 
+values (such as the critical temperature $T=2.269$ [2]) would be shifted slightly downward due to the reduction in total system energy.
+
+\section{Conclusion}
+The project successfully implemented a 2D Ising model simulation using the C programming language, 
+with all plotting and analysis handled by Python programs. 
+
+I made the code run efficiently in two main ways:\medbreak
+Memory: I used the simple $\text{char}$ data type for the spins so that each one only took up 1 byte of memory. 
+This was essential for handling large $N\times N$ lattices, with 262,144 total spins for $N=512$. If I had used an $\text{int}$ (4 bytes),
+the spin lattice alone would have used 1,048,576 bytes (1 MB) of memory. While this may not seem significant, the Monte Carlo simulation has 100,000 steps,
+so the file size contribution for the spins alone would have been 500 MB.\medbreak
+
+Speed: The Metropolis algorithm improved the speed of the simulation. 
+It computes only the small change in energy ($\Delta H$) needed to flip a spin, 
+instead of recalculating the full energy of the entire lattice at every step.\medbreak
+
+The program exploration showed the expected physical behaviours: 
+\begin{itemize} 
+\item \textbf{Temperature Effect:} At low temperatures ($T\approx1.5$), the spins aligned quickly, 
+indicating the ferromagnetic phase. At high temperatures ($T\approx7.5$), 
+the spins were completely random (paramagnetic phase), clearly demonstrating the phase transition. 
+\item \textbf{External Field:} Applying a magnetic field caused the whole lattice to align with the field, 
+even at the critical temperature, showing how the field biases the system. 
+\end{itemize} 
+The simulation successfully reproduced the expected behaviours at various temperatures and external magnetic field strengths, 
+demonstrating how the model can be used to study phase transitions and magnetic properties of materials.
+
+\subsection{Future improvements} 
+\begin{list}{}{} 
+\item \textbf{Parallelisation:} Implementing parallel processing (e.g., using threads) could significantly speed up the simulation for larger lattice sizes, since the creation and writing of the large CSV files can be time-consuming. 
+\item \textbf{Better Visualisation:} Integrating real-time updating plots into the simulation would enhance user experience, allowing users to see the lattice evolution as it happens.
+\item \textbf{Python API:} Creating a way for the C program to run the Python file directly would remove the need for the user to manually execute the plotting files after the simulation finishes. 
+\end{list}
+
+\begin{thebibliography}{2}
+\bibitem{mccoy2014}
+B.~M.~McCoy and T.~T.~Wu, \textit{The Two-Dimensional Ising Model}, Harvard University Press, Reprint 2014.
+\bibitem{Puspitasari2023} G. R. Puspitasari and W. Gunawan, ``Monte Carlo Simulation of 2D Ising Model with Cluster Algorithm,'' 
+\textit{Journal of Physics: Conference Series}, vol. 2543, no. 1, p. 012006, 2023.
+\end{thebibliography}
+
+\end{document}
