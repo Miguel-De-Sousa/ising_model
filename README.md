@@ -17,4 +17,7 @@ Data Structure: Uses a struct (IsingLattice) to manage all necessary parameters 
 
 Scientific Output: Data is written to a CSV file, ensuring compatibility with standard scientific plotting tools (e.g., Python, Gnuplot).
 
+My Result of The Ising Model at Critical T 🔥
+![](https://github.com/Miguel-De-Sousa/ising_model/blob/main/data/ising_evolution_critical.gif)
+
 💡Thanks for taking a look at my project!!
